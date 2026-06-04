@@ -1,0 +1,17 @@
+# Cargo.toml — describes our Rust crate (a "crate" = a Rust package).
+# This crate is the game's logic core. wasm-pack compiles it to WebAssembly.
+
+[package]
+name = "critter-core"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+# "cdylib" tells Rust to build a C-compatible dynamic library, which is the
+# shape WebAssembly needs. Without this you can't target WASM.
+crate-type = ["cdylib"]
+
+[dependencies]
+# wasm-bindgen is the bridge: it generates the JavaScript glue so our Rust
+# functions/structs are callable from TypeScript.
+wasm-bindgen = "0.2"
