@@ -3,9 +3,9 @@
 // Reads state out of Rust and draws it. It never changes the rules. State flows
 // ONE way: Rust -> screen.
 //
-//   - PixiJS draws the "scene" (the progress bar — now skill-agnostic).
-//   - Plain DOM/HTML draws the menu, which is now DATA-DRIVEN: it asks Rust how
-//     many skills exist and builds one button each. Nothing here says "Forage".
+//   - PixiJS draws the "scene" (the progress bar — skill-agnostic).
+//   - Plain DOM/HTML draws the menu, which is DATA-DRIVEN: it asks Rust how many
+//     skills exist and builds one button each. Nothing here names a skill.
 
 import { Application, Graphics } from "pixi.js";
 import init, { Game } from "./wasm/critter_core";
@@ -43,9 +43,8 @@ import init, { Game } from "./wasm/critter_core";
 
   const ui = document.getElementById("ui")!;
 
-  // 4. Build the menu from DATA. Ask Rust how many skills there are and make a
-  //    button per skill. Add a skill in skills.rs and a button appears here for
-  //    free — no edits to this file.
+  // 4. Build the menu from DATA. One button per skill; add a skill in skills.rs
+  //    and a button appears here for free — no edits to this file.
   const buttons: HTMLButtonElement[] = [];
   const skillCount = game.skill_count();
   for (let i = 0; i < skillCount; i++) {
@@ -60,15 +59,11 @@ import init, { Game } from "./wasm/critter_core";
     buttons.push(button);
   }
 
-  // 5. HUD — one count per item any skill can produce. We gather the distinct
-  //    output ids once, then read their counts every frame.
+  // 5. HUD — reflects the actual inventory. Rust gives us the (sorted) list of
+  //    item ids we hold; we read each count. Starts empty, fills as you earn.
   const hud = document.createElement("div");
   hud.className = "berry-count";
   ui.appendChild(hud);
-
-  const outputs = Array.from(
-    new Set(Array.from({ length: skillCount }, (_, i) => game.skill_output(i))),
-  );
 
   // 6. Render loop — runs ~60x/second on PixiJS's clock.
   app.ticker.add(() => {
@@ -77,7 +72,7 @@ import init, { Game } from "./wasm/critter_core";
     // Ask Rust to advance the game to "now". A skill completes inside here.
     game.resolve(now);
 
-    // Draw the bar from the generic progress value (any skill, not foraging).
+    // Draw the bar from the generic progress value (any skill).
     const progress = game.active_progress(now);
     bar.clear();
     bar.roundRect(BAR_X, BAR_Y, BAR_W, BAR_H, 6).fill("#2c3344");
@@ -85,13 +80,16 @@ import init, { Game } from "./wasm/critter_core";
       bar.roundRect(BAR_X, BAR_Y, BAR_W * progress, BAR_H, 6).fill("#6fcf73");
     }
 
-    // Update the HUD: "berry: 3   ore: 1".
-    hud.textContent = outputs
+    // HUD: "bar: 1   berry: 3   ore: 0" — only items we actually hold.
+    hud.textContent = game
+      .inventory_ids()
       .map((id) => `${id}: ${game.item_count(id)}`)
       .join("   ");
 
-    // Only one skill at a time: disable every button while busy.
-    const busy = game.is_busy();
-    for (const button of buttons) button.disabled = busy;
+    // Each button enables only when its skill can start (idle + inputs afforded).
+    // So Smith stays greyed out until you've mined 2 ore.
+    buttons.forEach((button, i) => {
+      button.disabled = !game.can_start(i);
+    });
   });
 })();
