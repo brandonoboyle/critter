@@ -1,12 +1,3 @@
-// lib.rs — the game's LOGIC CORE, in Rust.
-//
-// Owns the state and the rules; knows NOTHING about pixels or buttons. The state
-// lives inside `Game`; JavaScript only gets a handle and calls methods.
-//
-// The engine runs whatever skill is active, drawn from the data table in
-// skills.rs. A skill is a TRANSFORM (consume inputs -> produce outputs), so this
-// one loop covers both gathering and crafting.
-
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 
@@ -90,8 +81,7 @@ impl Game {
     pub fn resolve(&mut self, now: f64) {
         // Copy the bits we need out of the borrow on `self.active` so we're free
         // to mutate the inventory below.
-        let Some((skill_index, started_at)) =
-            self.active.as_ref().map(|a| (a.skill, a.started_at))
+        let Some((skill_index, started_at)) = self.active.as_ref().map(|a| (a.skill, a.started_at))
         else {
             return;
         };

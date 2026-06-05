@@ -1,16 +1,3 @@
-// skills.rs — the CONTENT layer.
-//
-// A `Skill` is pure DATA. The engine in lib.rs runs ANY skill from this list, so
-// "adding a skill" is just adding a row here — no engine code changes.
-//
-// A skill is a TRANSFORM: it consumes `inputs` and produces `outputs`, each a
-// list of (item id, quantity). This is the "inventory + transform" generalization
-// from the project's build bet — gathering and crafting are the SAME shape:
-//   - gather  = empty `inputs`  (Forage, Mine: make something from nothing)
-//   - craft   = non-empty `inputs` (Smith: eat ore, make a bar)
-// `inputs` is also what chains the passive half into the active half: mining
-// drops ore (set-and-leave), smithing eats ore to make bars (log-in-to-do).
-
 pub struct Skill {
     // Stable internal key. Never shown to the player; used in code/save data.
     pub id: &'static str,
