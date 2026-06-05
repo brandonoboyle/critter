@@ -1,17 +1,3 @@
-// lib.rs — the game's LOGIC CORE, in Rust.
-//
-// This owns the state and the rules. It knows NOTHING about pixels, buttons, or
-// the screen. wasm-pack compiles it to WebAssembly so TypeScript can call it.
-//
-// The big idea: the game STATE lives inside the `Game` struct, here in Rust.
-// JavaScript never holds the state — it only gets a handle to `Game` and calls
-// its methods. So the renderer literally cannot reach in and change the rules.
-//
-// Two Rust things to notice:
-//   - `Option<f64>` is Rust's "a number, or nothing" — it replaces `null`. You
-//     must handle the "nothing" case, so you can't forget it.
-//   - We never need a garbage collector; the struct owns its data outright.
-
 use wasm_bindgen::prelude::*;
 
 // How long one forage takes, in milliseconds.
@@ -56,8 +42,8 @@ impl Game {
             if now - started >= FORAGE_DURATION_MS {
                 self.started_at = None; // back to idle
                 self.berries += 1; // reward
-                // 👉 Want endless foraging? Use `self.started_at = Some(now);`
-                //    instead of setting it to None.
+                                   // 👉 Want endless foraging? Use `self.started_at = Some(now);`
+                                   //    instead of setting it to None.
             }
         }
     }
